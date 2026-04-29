@@ -1,0 +1,40 @@
+# Rust build artifacts
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# IDE
+.idea/
+*.swp
+*.swo
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Backup files
+*.bak
+*.backup
+*.sql.bak
+
+# Test coverage
+/coverage/
+*.profraw
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Trae IDE (保留此目录，它是工具配置)
+/.trae/
+
+# 数据库文件
+*.db
+*.sqlite
