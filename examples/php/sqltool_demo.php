@@ -58,7 +58,7 @@ class SqlToolCLI {
     }
 
     public function detectInjection(string $input): string {
-        return $this->run('detect-injection', '--input', $input);
+        return $this->run('detect-sql-injection', '--input', $input);
     }
 
     public function buildSafeSql(string $table, string $field, string $operator, string $value): string {

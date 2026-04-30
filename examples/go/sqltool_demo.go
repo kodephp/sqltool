@@ -76,12 +76,19 @@ func (c *SqlToolClient) BuildSafeSql(table, field, operator, value string) (map[
 	})
 }
 
-type SqlToolCLI struct{}
+type SqlToolCLI struct {
+	binaryPath string
+}
 
-var sqltoolPath = "./target/release/sqltool"
+func NewSqlToolCLI(binaryPath string) *SqlToolCLI {
+	if binaryPath == "" {
+		binaryPath = "sqltool"
+	}
+	return &SqlToolCLI{binaryPath: binaryPath}
+}
 
 func (cli *SqlToolCLI) run(args ...string) (string, error) {
-	cmd := exec.Command(sqltoolPath, args...)
+	cmd := exec.Command(cli.binaryPath, args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("命令执行失败: %v, 输出: %s", err, string(output))
@@ -128,7 +135,7 @@ func main() {
 
 	if useCLI {
 		fmt.Println("模式: CLI (不需要启动 server)\n")
-		cli := &SqlToolCLI{}
+		cli := NewSqlToolCLI("/Users/Zhuanz/Desktop/website/composer/sqlmap/target/release/sqltool")
 
 		printResult("1. SQL注入检测", cli.DetectInjection("' OR '1'='1"))
 		printResult("2. 构建安全SQL", cli.BuildSafeSql("users", "name", "=", "test'; DROP TABLE"))

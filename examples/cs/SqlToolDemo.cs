@@ -71,7 +71,7 @@ class SqlToolDemo
             return output;
         }
 
-        public string DetectInjection(string input) => Run("detect-injection", "--input", input);
+        public string DetectInjection(string input) => Run("detect-sql-injection", "--input", input);
         public string BuildSafeSql(string table, string field, string op, string value)
             => Run("build-safe-sql", "--table", table, "--field", field, "--operator", op, "--value", value);
     }

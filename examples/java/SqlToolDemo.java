@@ -83,7 +83,7 @@ public class SqlToolDemo {
         }
 
         public String detectInjection(String input) {
-            try { return run("detect-injection", "--input", input); }
+            try { return run("detect-sql-injection", "--input", input); }
             catch (Exception e) { return "Error: " + e.getMessage(); }
         }
 

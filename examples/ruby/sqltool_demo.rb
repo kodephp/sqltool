@@ -44,7 +44,7 @@ class SqlToolCLI
   end
 
   def detect_injection(input)
-    run('detect-injection', '--input', input)
+    run('detect-sql-injection', '--input', input)
   end
 
   def build_safe_sql(table, field, operator, value)

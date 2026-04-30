@@ -108,7 +108,7 @@ class SqlToolCLI:
 
     def detect_injection(self, input_text: str) -> str:
         """SQL注入检测"""
-        return self.run("detect-injection", "--input", input_text)
+        return self.run("detect-sql-injection", "--input", input_text)
 
     def build_safe_sql(self, table: str, field: str, operator: str, value: str) -> str:
         """构建安全SQL"""

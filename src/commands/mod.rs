@@ -459,20 +459,66 @@ pub async fn execute(args: Args) -> Result<()> {
             println!("启动 HTTP API 服务器...");
             start_server(port, source).await?;
         }
-        Command::DetectSqlInjection { input, .. } => {
+        Command::DetectSqlInjection { input, strict } => {
             if input.len() > 10000 {
                 anyhow::bail!("输入过长，最大10000字符");
             }
-            println!("执行 SQL 注入检测...");
+
+            use crate::utils::SqlInjectionDetector;
+
+            let detector = SqlInjectionDetector::new();
+            let report = detector.detect(&input);
+
+            println!("\n========== SQL 注入检测结果 ==========");
+            println!("输入: {}", input);
+
+            if let Some(r) = report {
+                println!("风险等级: {:?}", r.risk_level);
+                println!("发现 {} 个问题:", r.findings.len());
+                for finding in &r.findings {
+                    println!("  - [{:?}] {}", finding.category, finding.description);
+                }
+                if strict && matches!(r.risk_level, crate::utils::RiskLevel::High | crate::utils::RiskLevel::Critical) {
+                    anyhow::bail!("检测到高风险 SQL 注入攻击！");
+                }
+            } else {
+                println!("风险等级: None");
+                println!("未发现 SQL 注入风险");
+            }
+            println!("======================================\n");
         }
-        Command::BuildSafeSql { table, field, operator, value, .. } => {
+        Command::BuildSafeSql { table, field, operator, value } => {
+            use crate::utils::SafeSqlBuilder;
+
             validate_table_name(&table)?;
             validate_field_name(&field)?;
             validate_operator(&operator)?;
             if value.len() > 10000 {
                 anyhow::bail!("值过长，最大10000字符");
             }
-            println!("执行安全 SQL 构建...");
+
+            println!("\n========== 安全 SQL 构建结果 ==========");
+            println!("表: {}", table);
+            println!("字段: {}", field);
+            println!("操作符: {}", operator);
+            println!("原始值: {}", value);
+
+            match SafeSqlBuilder::new(&table) {
+                Ok(builder) => {
+                    match builder.safe_where(&field, &operator, &serde_json::json!(&value)) {
+                        Ok(sql) => {
+                            println!("安全 SQL: {}", sql);
+                        }
+                        Err(e) => {
+                            println!("构建失败: {}", e);
+                        }
+                    }
+                }
+                Err(e) => {
+                    println!("构建器创建失败: {}", e);
+                }
+            }
+            println!("======================================\n");
         }
     }
 

@@ -38,11 +38,11 @@ echo ""
 # 示例2: SQL注入检测
 echo -e "${YELLOW}=== 示例2: SQL注入检测 ===${NC}"
 echo "检测: ' OR '1'='1"
-sqltool detect-injection --input "' OR '1'='1"
+sqltool detect-sql-injection --input "' OR '1'='1"
 echo ""
 
 echo "检测: normal_input"
-sqltool detect-injection --input "normal_input"
+sqltool detect-sql-injection --input "normal_input"
 echo ""
 
 # 示例3: 构建安全SQL

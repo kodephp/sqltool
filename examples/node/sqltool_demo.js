@@ -67,7 +67,7 @@ class SqlToolCLI {
     }
 
     detectInjection(input) {
-        return this.run('detect-injection', '--input', input);
+        return this.run('detect-sql-injection', '--input', input);
     }
 
     buildSafeSql(table, field, operator, value) {
