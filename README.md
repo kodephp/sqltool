@@ -389,7 +389,7 @@ println!("验证结果: {}", report.summary());
 表名: users
 源数据库: mysql://localhost:3306/source_db
 目标数据库: postgresql://localhost:5432/target_db
-验证时间: $(date "+%Y-%m-%d %H:%M:%S")
+验证时间: $(date '+%Y-%m-%d %H:%M:%S')
 --------------------------------------------------------------------------------
 总行数: 1,000,000
 迁移行数: 1,000,000
@@ -518,32 +518,6 @@ sqltool server -p 8080 -s mysql://root:pass@localhost:3306/mydb --cors
 # 其他语言调用
 curl http://localhost:8080/api/backup -X POST -d '{"source": "mysql://..."}'
 ```
-
----
-
-
-项目已配置 GitHub Actions：
-
-### 推送标签自动发布
-
-```bash
-# 创建版本标签
-git tag v0.1.0
-git push origin v0.1.0
-
-# GitHub Actions 自动：
-# 1. 运行测试
-# 2. 构建二进制 (macOS/Linux)
-# 3. 发布到 crates.io
-# 4. 创建 GitHub Release
-```
-
-### CI 检查项
-
-- ✅ Rust 格式检查 (`cargo fmt`)
-- ✅ Clippy 代码检查
-- ✅ 单元测试 (`cargo test`)
-- ✅ 文档生成 (`cargo doc`)
 
 ---
 
