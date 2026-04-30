@@ -14,6 +14,9 @@ pub mod models;
 pub mod commands;
 pub mod utils;
 
+#[cfg(test)]
+mod tests;
+
 /// 库的版本号
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 

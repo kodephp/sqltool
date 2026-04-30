@@ -534,3 +534,179 @@ mod tests {
         assert!(result.is_err());
     }
 }
+
+// ============================================================================
+// 增强的 SQL 防注入模块
+// ============================================================================
+
+/// 输入验证器 - 黑名单验证和长度限制
+pub struct InputValidator {
+    blacklist_patterns: Vec<String>,
+    max_length: usize,
+}
+
+impl InputValidator {
+    pub fn new() -> Self {
+        Self {
+            blacklist_patterns: Vec::new(),
+            max_length: 10000,
+        }
+    }
+
+    pub fn add_blacklist_pattern(mut self, pattern: &str) -> Self {
+        self.blacklist_patterns.push(pattern.to_string());
+        self
+    }
+
+    pub fn set_max_length(mut self, length: usize) -> Self {
+        self.max_length = length;
+        self
+    }
+
+    pub fn validate(&self, input: &str) -> Result<()> {
+        if input.len() > self.max_length {
+            return Err(anyhow!("输入长度 {} 超过最大限制 {}", input.len(), self.max_length));
+        }
+
+        for pattern in &self.blacklist_patterns {
+            if input.to_uppercase().contains(&pattern.to_uppercase()) {
+                return Err(anyhow!("输入包含禁止的模式: {}", pattern));
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl Default for InputValidator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// 输出编码器 - 多格式编码防护
+pub struct OutputEncoder;
+
+impl OutputEncoder {
+    /// HTML 编码 - 防止 XSS
+    pub fn html_encode(input: &str) -> String {
+        input
+            .replace('&', "&amp;")
+            .replace('<', "&lt;")
+            .replace('>', "&gt;")
+            .replace('"', "&quot;")
+            .replace('\'', "&#x27;")
+    }
+
+    /// HTML 属性编码
+    pub fn html_attribute_encode(input: &str) -> String {
+        input
+            .replace('&', "&amp;")
+            .replace('"', "&quot;")
+            .replace('\'', "&#x27;")
+    }
+
+    /// URL 编码
+    pub fn url_encode(input: &str) -> String {
+        let mut result = String::new();
+        for byte in input.bytes() {
+            match byte {
+                b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                    result.push(byte as char);
+                }
+                _ => {
+                    result.push_str(&format!("%{:02X}", byte));
+                }
+            }
+        }
+        result
+    }
+
+    /// JavaScript 编码
+    pub fn javascript_encode(input: &str) -> String {
+        input
+            .replace('\\', "\\\\")
+            .replace('"', "\\\"")
+            .replace('\'', "\\'")
+            .replace('\n', "\\n")
+            .replace('\r', "\\r")
+            .replace('\t', "\\t")
+            .replace('<', "\\x3C")
+            .replace('>', "\\x3E")
+    }
+
+    /// SQL 转义 - 使用双单引号
+    pub fn sql_encode(input: &str) -> String {
+        input.replace('\'', "''")
+    }
+
+    /// JSON 编码
+    pub fn json_encode(input: &str) -> String {
+        serde_json::to_string(input).unwrap_or_else(|_| input.to_string())
+    }
+
+    /// 十六进制编码 - 用于 SQL LIKE
+    pub fn hex_encode(input: &str) -> String {
+        input
+            .bytes()
+            .map(|b| format!("{:02X}", b))
+            .collect::<Vec<_>>()
+            .join("")
+    }
+}
+
+#[cfg(test)]
+mod enhanced_tests {
+    use super::*;
+
+    #[test]
+    fn test_input_validator_blacklist() {
+        let validator = InputValidator::new()
+            .add_blacklist_pattern("DROP")
+            .add_blacklist_pattern("DELETE");
+
+        assert!(validator.validate("SELECT * FROM users").is_ok());
+        assert!(validator.validate("DROP TABLE users").is_err());
+        assert!(validator.validate("DELETE FROM users").is_err());
+    }
+
+    #[test]
+    fn test_input_validator_max_length() {
+        let validator = InputValidator::new()
+            .set_max_length(10);
+
+        assert!(validator.validate("short").is_ok());
+        assert!(validator.validate("this is too long").is_err());
+    }
+
+    #[test]
+    fn test_output_encoder_html() {
+        let encoded = OutputEncoder::html_encode("<script>alert('xss')</script>");
+        assert!(!encoded.contains("<script>"));
+        assert!(encoded.contains("&lt;script&gt;"));
+    }
+
+    #[test]
+    fn test_output_encoder_url() {
+        let encoded = OutputEncoder::url_encode("hello world");
+        assert_eq!(encoded, "hello%20world");
+    }
+
+    #[test]
+    fn test_output_encoder_sql() {
+        let encoded = OutputEncoder::sql_encode("O'Brien");
+        assert_eq!(encoded, "O''Brien");
+    }
+
+    #[test]
+    fn test_output_encoder_javascript() {
+        let encoded = OutputEncoder::javascript_encode("<script>");
+        assert!(encoded.contains("\\x3C") || encoded.contains("\\x3c"));
+    }
+
+    #[test]
+    fn test_output_encoder_hex() {
+        let encoded = OutputEncoder::hex_encode("ABC");
+        assert_eq!(encoded, "414243");
+    }
+}

@@ -304,6 +304,39 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### 多语言调用示例
+
+详细示例请参考 [examples/](examples/) 目录：
+
+| 语言 | 文件 | 说明 |
+|------|------|------|
+| Python | `examples/python/sqltool_demo.py` | HTTP API + CLI |
+| Node.js | `examples/node/sqltool_demo.js` | HTTP API + CLI |
+| Go | `examples/go/sqltool_demo.go` | HTTP API + CLI |
+| PHP | `examples/php/sqltool_demo.php` | HTTP API + CLI |
+| Ruby | `examples/ruby/sqltool_demo.rb` | HTTP API + CLI |
+| Java | `examples/java/SqlToolDemo.java` | HTTP API + CLI |
+| C# | `examples/cs/SqlToolDemo.cs` | HTTP API + CLI |
+| Bash | `examples/cli/all_examples.sh` | Shell CLI |
+
+运行示例：
+
+```bash
+# Python (HTTP API)
+python examples/python/sqltool_demo.py
+
+# Python (CLI 模式)
+python examples/python/sqltool_demo.py --cli
+
+# Node.js
+node examples/node/sqltool_demo.js
+
+# Go
+go run examples/go/sqltool_demo.go
+```
+
+完整文档: [examples/README.md](examples/)
+
 ---
 
 ## 数据验证功能

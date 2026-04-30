@@ -33,6 +33,7 @@ mod compatibility;
 pub mod connection;
 
 pub use compatibility::{DatabaseVersion, DatabaseCompatibility, MySqlCompatibility, PostgresCompatibility, SqliteCompatibility};
+pub use oracle::{OracleConverter, OracleConnection};
 
 pub async fn create_connection(
     db_type: DatabaseType,
