@@ -9,7 +9,7 @@
 # 包名称 - 用于发布到 crates.io
 name = "sqltool"
 # 版本号 - 遵循语义化版本 (Semantic Versioning)
-version = "0.4.0"
+version = "0.4.1"
 # Rust edition 版本
 edition = "2021"
 # 作者列表

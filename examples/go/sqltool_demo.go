@@ -6,17 +6,29 @@
 // 使用方法:
 //   go run sqltool_demo.go           # HTTP API 模式
 //   go run sqltool_demo.go --cli     # CLI 模式
+//
+// 环境变量:
+//   SQLTOOL_PATH - sqltool 可执行文件路径 (默认: sqltool)
 
 package main
 
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
 )
+
+func getSqlToolPath() string {
+	if path := os.Getenv("SQLTOOL_PATH"); path != "" {
+		return path
+	}
+	return "sqltool"
+}
 
 type SqlToolClient struct {
 	BaseURL string
@@ -75,10 +87,18 @@ func (c *SqlToolClient) BuildSafeSql(table, field, operator, value string) (map[
 	})
 }
 
-type SqlToolCLI struct{}
+type SqlToolCLI struct {
+	sqltoolPath string
+}
+
+func NewSqlToolCLI() *SqlToolCLI {
+	return &SqlToolCLI{
+		sqltoolPath: getSqlToolPath(),
+	}
+}
 
 func (cli *SqlToolCLI) run(args ...string) (string, error) {
-	cmd := exec.Command("sqltool", args...)
+	cmd := exec.Command(cli.sqltoolPath, args...)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("命令执行失败: %v, 输出: %s", err, string(output))
@@ -87,7 +107,7 @@ func (cli *SqlToolCLI) run(args ...string) (string, error) {
 }
 
 func (cli *SqlToolCLI) DetectInjection(input string) string {
-	result, err := cli.run("detect-injection", "--input", input)
+	result, err := cli.run("detect-sql-injection", "--input", input)
 	if err != nil {
 		return err.Error()
 	}
@@ -115,7 +135,8 @@ func printResult(title string, result interface{}) {
 }
 
 func main() {
-	useCLI := len(os.Args) > 1 && os.Args[1] == "--cli"
+	useCLI := flag.Bool("cli", false, "使用 CLI 模式 (不需要启动 server)")
+	flag.Parse()
 
 	fmt.Println(`
 ╔══════════════════════════════════════════════════╗
@@ -123,9 +144,9 @@ func main() {
 ╚══════════════════════════════════════════════════╝
     `)
 
-	if useCLI {
+	if *useCLI {
 		fmt.Println("模式: CLI (不需要启动 server)\n")
-		cli := &SqlToolCLI{}
+		cli := NewSqlToolCLI()
 
 		printResult("1. SQL注入检测", cli.DetectInjection("' OR '1'='1"))
 		printResult("2. 构建安全SQL", cli.BuildSafeSql("users", "name", "=", "test'; DROP TABLE"))
