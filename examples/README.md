@@ -1,175 +1,170 @@
 # SQLTool 多语言调用示例
 
-本目录包含 SQLTool 在各种编程语言中的调用示例。
-
-## 安装 SQLTool
-
-```bash
-# 方式1: cargo install (推荐)
-cargo install sqltool
-
-# 方式2: GitHub 下载
-curl -L https://github.com/kodephp/sqltool/releases/latest/download/sqltool-macos.tar.gz | tar xz
-```
-
-## 快速开始
-
-### 方式1: HTTP API 模式 (需要先启动服务)
-
-```bash
-# 启动 SQLTool HTTP 服务
-sqltool server -p 8080 -s mysql://localhost/mydb
-```
-
-然后运行各语言的示例：
-
-```bash
-# Python
-pip install requests
-python python/sqltool_demo.py
-
-# Node.js
-npm install axios
-node node/sqltool_demo.js
-
-# Go
-go run go/sqltool_demo.go
-
-# PHP
-php php/sqltool_demo.php
-
-# Ruby
-ruby ruby/sqltool_demo.rb
-
-# Java
-javac java/SqlToolDemo.java
-java SqlToolDemo
-
-# C#
-dotnet new console -o cs
-cp cs/SqlToolDemo.cs cs/Program.cs
-dotnet run
-```
-
-### 方式2: CLI 模式 (不需要启动服务)
-
-所有语言都支持直接调用 CLI：
-
-```bash
-# Python
-python python/sqltool_demo.py --cli
-
-# Node.js
-node node/sqltool_demo.js --cli
-
-# Go
-go run go/sqltool_demo.go --cli
-
-# PHP
-php php/sqltool_demo.php --cli
-
-# Ruby
-ruby ruby/sqltool_demo.rb --cli
-
-# Java
-javac java/SqlToolDemo.java
-java SqlToolDemo --cli
-
-# C#
-dotnet run -- --cli
-```
-
-## 示例功能
-
-每个示例都包含以下功能演示：
-
-| 功能 | 说明 |
-|------|------|
-| 健康检查 | `/api/health` - 检查服务状态 |
-| SQL注入检测 | 检测恶意 SQL 输入 |
-| 构建安全SQL | 防止 SQL 注入的参数化构建 |
+本目录包含使用 SQLTool 的多种编程语言调用示例。
 
 ## 目录结构
 
 ```
 examples/
-├── README.md              # 本文件
-├── cli/                  # Shell CLI 示例
-│   └── all_examples.sh   # 所有 CLI 命令示例
-├── rust/                 # Rust 库调用
-│   ├── Cargo.toml
-│   └── src/main.rs
-├── python/               # Python 调用
-│   └── sqltool_demo.py
-├── node/                 # Node.js 调用
-│   └── sqltool_demo.js
-├── go/                   # Go 调用
+├── README.md           # 本文档
+├── cli/                # Shell CLI 示例
+│   └── all_examples.sh
+├── go/                 # Go 语言示例
 │   └── sqltool_demo.go
-├── php/                  # PHP 调用
-│   └── sqltool_demo.php
-├── ruby/                 # Ruby 调用
-│   └── sqltool_demo.rb
-├── java/                 # Java 调用
+├── java/               # Java 语言示例
 │   └── SqlToolDemo.java
-└── cs/                   # C# 调用
+├── node/               # Node.js 示例
+│   └── sqltool_demo.js
+├── php/                # PHP 示例
+│   └── sqltool_demo.php
+├── python/              # Python 示例
+│   └── sqltool_demo.py
+├── ruby/               # Ruby 示例
+│   └── sqltool_demo.rb
+└── cs/                 # C# 示例
     └── SqlToolDemo.cs
 ```
 
-## Rust 库调用 (示例)
+## 快速开始
 
-如果你使用 Rust，可以直接作为库依赖：
-
-```toml
-# Cargo.toml
-[dependencies]
-sqltool = "0.3"
-tokio = { version = "1", features = ["full"] }
-```
-
-```rust
-use sqltool::{create_connection, DatabaseType, DataTransfer};
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let source = create_connection(DatabaseType::SQLite, "sqlite://:memory:").await?;
-    let target = create_connection(DatabaseType::SQLite, "sqlite://:memory:").await?;
-
-    let transfer = DataTransfer::new(source, target);
-    let mappings = transfer.generate_auto_mappings("source_table", "target_table").await?;
-    let report = transfer.transfer(mappings).await?;
-
-    println!("迁移完成: {} 行", report.rows_transferred);
-    Ok(())
-}
-```
-
-## CLI 常用命令
+### 1. 构建 SQLTool
 
 ```bash
-# SQL注入检测
-sqltool detect-injection --input "' OR '1'='1"
-
-# 构建安全SQL
-sqltool build-safe-sql --table users --field name --operator = --value "test"
-
-# 数据迁移
-sqltool transfer -s mysql://localhost/source -t postgresql://localhost/target
-
-# 数据库备份
-sqltool backup -s mysql://localhost/db --output ./backup.sql
-
-# 数据对比
-sqltool compare-data -s db1 -t db2 --table users --primary-key id
-
-# 创建分片
-sqltool create-shard -s mysql://localhost/db --table orders --strategy row_count
-
-# 启动HTTP服务
-sqltool server -p 8080 -s mysql://localhost/db
+cargo build --release
 ```
 
-## 完整文档
+### 2. CLI 模式 (所有语言通用)
 
-- API 文档: https://docs.rs/sqltool
-- crates.io: https://crates.io/crates/sqltool
-- GitHub: https://github.com/kodephp/sqltool
+```bash
+# SQL 注入检测
+./target/release/sqltool detect-sql-injection --input "' OR '1'='1"
+
+# 构建安全 SQL
+./target/release/sqltool build-safe-sql --table users --field name --value "test"
+
+# 健康检查
+./target/release/sqltool health
+```
+
+### 3. HTTP API 模式
+
+```bash
+# 启动服务器
+./target/release/sqltool server -p 8080 -s mysql://localhost/mydb
+```
+
+## 各语言示例
+
+### Go
+
+```bash
+cd examples/go
+go run sqltool_demo.go           # HTTP API 模式
+go run sqltool_demo.go --cli     # CLI 模式
+```
+
+### Python
+
+```bash
+cd examples/python
+python3 sqltool_demo.py           # HTTP API 模式
+python3 sqltool_demo.py --cli    # CLI 模式
+```
+
+### Node.js
+
+```bash
+cd examples/node
+node sqltool_demo.js             # HTTP API 模式
+node sqltool_demo.js --cli       # CLI 模式
+```
+
+### PHP
+
+```bash
+cd examples/php
+php sqltool_demo.php             # HTTP API 模式
+php sqltool_demo.php --cli       # CLI 模式
+```
+
+### Ruby
+
+```bash
+cd examples/ruby
+ruby sqltool_demo.rb             # HTTP API 模式
+ruby sqltool_demo.rb --cli       # CLI 模式
+```
+
+### Java
+
+```bash
+cd examples/java
+javac SqlToolDemo.java
+java SqlToolDemo                  # HTTP API 模式
+java SqlToolDemo cli              # CLI 模式
+```
+
+### C#
+
+```bash
+cd examples/cs
+dotnet run                        # HTTP API 模式
+dotnet run -- cli                  # CLI 模式
+```
+
+## HTTP API 端点
+
+启动服务器后可用：
+
+| 端点 | 方法 | 描述 |
+|------|------|------|
+| `/api/health` | GET | 健康检查 |
+| `/api/security/detect-injection` | POST | SQL 注入检测 |
+| `/api/security/build-safe-sql` | POST | 构建安全 SQL |
+
+## CLI 命令
+
+| 命令 | 描述 |
+|------|------|
+| `detect-sql-injection` | 检测 SQL 注入风险 |
+| `build-safe-sql` | 构建参数化 SQL |
+| `health` | 健康检查 |
+| `server` | 启动 HTTP API 服务器 |
+
+## 示例输出
+
+### CLI 模式
+
+```
+==================================================
+1. SQL注入检测
+==================================================
+风险等级: High
+发现: 经典 OR 注入
+
+==================================================
+2. 构建安全SQL
+==================================================
+table: users
+field: name
+value: test'; DROP TABLE
+sanitized_value: test''; DROP TABLE
+```
+
+### HTTP API 模式
+
+```json
+{
+  "success": true,
+  "data": {
+    "risk_level": "High",
+    "findings": [
+      {
+        "pattern": "经典 OR 注入",
+        "position": 0,
+        "matched_text": "' OR '1'='1"
+      }
+    ]
+  }
+}
+```
