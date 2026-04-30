@@ -389,7 +389,7 @@ println!("验证结果: {}", report.summary());
 表名: users
 源数据库: mysql://localhost:3306/source_db
 目标数据库: postgresql://localhost:5432/target_db
-验证时间: 2024-01-01 12:00:00
+验证时间: $(date "+%Y-%m-%d %H:%M:%S")
 --------------------------------------------------------------------------------
 总行数: 1,000,000
 迁移行数: 1,000,000
@@ -521,59 +521,6 @@ curl http://localhost:8080/api/backup -X POST -d '{"source": "mysql://..."}'
 
 ---
 
-## 发布包到 crates.io
-
-### 首次发布
-
-```bash
-# 1. 注册 crates.io 账号并获取 API Token
-#    访问 https://crates.io/settings/tokens
-
-# 2. 登录
-cargo login
-# 输入 Token
-
-# 3. 检查 Cargo.toml
-#    - name = "sqltool"
-#    - version = "0.1.0"
-#    - description 不能为空
-#    - license = "MIT"
-
-# 4. 发布
-cargo publish
-```
-
-### 更新发布
-
-```bash
-# 1. 更新版本号
-vim Cargo.toml  # version = "0.2.0"
-
-# 2. 提交代码
-git add .
-git commit -m "chore: bump version to 0.2.0"
-git push
-
-# 3. 创建标签
-git tag v0.2.0
-git push origin v0.2.0
-
-# 4. 发布
-cargo publish
-```
-
-### 发布后验证
-
-```bash
-# 查看已发布的包
-cargo search sqltool
-
-# 或者访问 https://crates.io/crates/sqltool
-```
-
----
-
-## CI/CD 自动发布
 
 项目已配置 GitHub Actions：
 
