@@ -1,7 +1,7 @@
 # SQLTool - 智能数据库迁移与运维工具
 
 <p align="center">
-  <strong>SQLTool</strong> v0.5.0 — 异构数据库自动转换 · 数据迁移 · 同步 · 备份 · 运维
+  <strong>SQLTool</strong> v0.6.1 — 异构数据库自动转换 · 数据迁移 · 同步 · 备份 · 运维
 </p>
 
 <p align="center">

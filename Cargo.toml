@@ -9,13 +9,13 @@
 # 包名称 - 用于发布到 crates.io
 name = "sqltool"
 # 版本号 - 遵循语义化版本 (Semantic Versioning)
-version = "0.6.0"
+version = "0.6.1"
 # Rust edition 版本
 edition = "2021"
 # 作者列表
 authors = ["SQLTool Team <sqltool@example.com>"]
-# 双协议：MIT OR Apache-2.0（用户可任选其一）
-license = "MIT OR Apache-2.0"
+# 许可协议：Apache-2.0
+license = "Apache-2.0"
 # 包描述 - 简洁描述包的功能
 description = "功能强大的数据库迁移、同步、运维工具，支持异构数据库自动转换、自动分库分表、慢查询检测、数据对比、备份恢复，提供多语言SDK"
 # 项目主页
