@@ -5,10 +5,10 @@
 </p>
 
 <p align="center">
-  <a href="https://crates.io/crates/sqltool"><img alt="crates.io" src="https://img.shields.io/badge/crates.io-v0.5.0-blue"></a>
-  <a href="https://github.com/yourusername/sqltool"><img alt="Rust 1.96+" src="https://img.shields.io/badge/rust-1.96%2B-orange"></a>
-  <a href="#-测试统计"><img alt="Tests" src="https://img.shields.io/badge/tests-224%20passed-brightgreen"></a>
-  <a href="#license"><img alt="License" src="https://img.shields.io/badge/license-MIT-green"></a>
+  <a href="https://crates.io/crates/sqltool"><img alt="crates.io" src="https://img.shields.io/badge/crates.io-v0.6.1-blue"></a>
+  <a href="https://github.com/kodephp/sqltool"><img alt="Rust 1.96+" src="https://img.shields.io/badge/rust-1.96%2B-orange"></a>
+  <a href="#-测试统计"><img alt="Tests" src="https://img.shields.io/badge/tests-256%20passed-brightgreen"></a>
+  <a href="#license"><img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue"></a>
 </p>
 
 ---
@@ -32,7 +32,7 @@
 
 ## 核心功能
 
-### 1. 异构数据库自动转换（v0.5.0 全新）
+### 1. 异构数据库自动转换（v0.6.1 全新）
 
 > **新增** ：跨数据库结构、字段、数据的全自动转换能力。
 
@@ -275,7 +275,7 @@ sqltool detect-slow \
 sqltool server -p 8080 -s mysql://root:pass@localhost:3306/mydb
 ```
 
-### 跨数据库自动转换（v0.5.0）
+### 跨数据库自动转换（v0.6.1）
 
 ```rust
 use sqltool::core::{CrossDbConverter, TargetDbKind};
@@ -412,7 +412,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let result = comparer.compare_table("users").await?;
     println!("对比结果: 匹配率 {:.2}%", result.stats.match_percentage);
 
-    // 4. 跨数据库结构转换（v0.5.0 新增）
+    // 4. 跨数据库结构转换（v0.6.1 新增）
     let converter = CrossDbConverter::new()
         .with_linker(FieldLinker::new()); // 可选：添加手工字段映射
     let report = converter.convert_table(&table, TargetDbKind::PostgreSQL, TargetDbKind::MySQL)?;
@@ -492,7 +492,7 @@ let report = verifier.verify_table("users", VerifyConfig {
 }).await?;
 ```
 
-### 4. 跨库字段值验证（v0.5.0）
+### 4. 跨库字段值验证（v0.6.1）
 
 ```rust
 use sqltool::core::ValueTransformer;
@@ -561,7 +561,7 @@ CRC 校验:          ✅ 通过
 sqltool/
 ├── src/
 │   ├── core/                          # 核心功能
-│   │   ├── cross_db_conversion.rs     # 跨数据库异构转换 (v0.5.0)
+│   │   ├── cross_db_conversion.rs     # 跨数据库异构转换 (v0.6.1)
 │   │   ├── data_transfer.rs           # 数据迁移引擎
 │   │   ├── auto_sharding.rs           # 自动分库分表
 │   │   ├── log_table.rs               # 日志表管理
@@ -588,11 +588,15 @@ sqltool/
 │   │   ├── validation.rs               # 数据验证
 │   │   └── performance.rs              # 性能基准
 │   └── lib.rs
-├── sdks/                               # 多语言 SDK
+├── sdks/                               # 多语言 SDK（v0.6.1）
 │   ├── python/                         # Python SDK
 │   ├── node/                           # Node.js SDK
 │   ├── go/                             # Go SDK
-│   └── php/                            # PHP SDK
+│   ├── php/                            # PHP SDK
+│   ├── ruby/                           # Ruby SDK
+│   ├── java/                           # Java SDK
+│   ├── csharp/                         # C# SDK
+│   └── SDK_USAGE.md                    # 多语言 SDK 调用指南
 ├── tests/                              # 集成测试
 │   ├── integration_test.rs
 │   ├── database_test.rs
@@ -606,6 +610,81 @@ sqltool/
 ├── .github/workflows/                  # CI/CD
 ├── Cargo.toml
 └── README.md
+```
+
+---
+
+## 多语言 SDK（v0.6.1 新增）
+
+SQLTool 提供 8 种语言的官方 SDK，全部支持跨数据库迁移 + 智能分库分表。
+
+| 语言 | 路径 | 调用方式 | 演示 |
+|------|------|----------|------|
+| **Python** | `sdks/python/sqltool_sdk.py` | HTTP + CLI + 高阶 API | `python3 sdks/python/sqltool_sdk.py` |
+| **Node.js** | `sdks/node/sqltool_sdk.js` | HTTP + CLI + 高阶 API | `node sdks/node/sqltool_sdk.js` |
+| **Go** | `sdks/go/sqltool_sdk.go` | HTTP + 高阶 API | `cd sdks/go/demo && go run .` |
+| **PHP** | `sdks/php/sqltool_sdk.php` | CLI + 高阶 API | `php sdks/php/sqltool_sdk.php` |
+| **Ruby** | `sdks/ruby/sqltool_sdk.rb` | HTTP + 高阶 API | `ruby sdks/ruby/sqltool_sdk.rb` |
+| **Java** | `sdks/java/SqlTool.java` | HTTP + CLI + 高阶 API | `cd sdks/java && javac *.java && java -cp . com.sqltool.sdk.demo.SqlToolDemo` |
+| **C#** | `sdks/csharp/SqlToolSdk.cs` | HTTP + CLI + 高阶 API | `cd sdks/csharp && dotnet run` |
+| **Rust** | `examples/rust/src/main.rs` | 库 API（最完整） | `cd examples/rust && cargo run` |
+
+所有 SDK 共享同一套 **200+ 类型映射规则** 和 **6 级字段匹配算法**。完整使用文档：[sdks/SDK_USAGE.md](file:///Users/Zhuanz/Desktop/website/composer/sqlmap/sdks/SDK_USAGE.md)
+
+### Python SDK 快速示例
+
+```python
+from sdks.python.sqltool_sdk import CrossDbMigrator, TableSpec, FieldSpec
+
+mig = CrossDbMigrator()
+result = mig.migrate_table(
+    source="mysql://root:pass@localhost:3306/mydb",
+    target="postgresql://postgres:pass@localhost:5432/mydb",
+    table=TableSpec(name="orders", fields=[
+        FieldSpec("id", "INT", primary_key=True, auto_increment=True),
+        FieldSpec("user_id", "BIGINT"),
+        FieldSpec("amount", "DECIMAL(10,2)"),
+        FieldSpec("created_at", "DATETIME"),
+    ]),
+    source_version="5.7.40",
+    target_version="16.2.0",
+    auto_field_link=True,
+    manual_field_map={"remark": "comment"},
+)
+print(f"映射: {result.fields_mapped}/{result.fields_total}")
+print(f"DDL:\n{result.ddl}")
+```
+
+### Node.js SDK 快速示例
+
+```javascript
+const { CrossDbMigrator } = require('./sdks/node/sqltool_sdk');
+
+const mig = new CrossDbMigrator();
+const result = mig.migrateTable({
+    source: 'mysql://root:pass@localhost:3306/mydb',
+    target: 'postgresql://postgres:pass@localhost:5432/mydb',
+    table: { name: 'orders', fields: [
+        { name: 'id', dataType: 'INT', primaryKey: true },
+        { name: 'user_id', dataType: 'BIGINT' },
+        { name: 'amount', dataType: 'DECIMAL(10,2)' },
+    ]},
+    sourceVersion: '5.7.40',
+    targetVersion: '16.2.0',
+});
+console.log(result.ddl);
+```
+
+### 智能分库分表（跨语言一致 API）
+
+```python
+from sdks.python.sqltool_sdk import SmartSharding
+
+sharding = SmartSharding("orders", "user_id", strategy="hash")
+sharding.add_shard("s0", "mysql://n1/orders_0", "orders_0")
+sharding.add_shard("s1", "mysql://n1/orders_1", "orders_1")
+node = sharding.route("user_001")  # → s0/orders_0
+plan = sharding.rebalance_plan(total_rows=10_000_000)
 ```
 
 ---
@@ -648,7 +727,7 @@ cargo build --release
 ```toml
 # Cargo.toml
 [dependencies]
-sqltool = { version = "0.5", features = ["full"] }
+sqltool = { version = "0.6.1", features = ["full"] }
 ```
 
 ```rust
@@ -706,15 +785,15 @@ cargo bench
 
 | 类别 | 数量 |
 |------|------|
-| **总测试用例** | **224** |
-| 单元测试（lib） | 200 |
+| **总测试用例** | **256** |
+| 单元测试（lib） | 232 |
 | 集成测试（tests/） | 24 |
-| 跨库转换专项测试 | 29 |
+| 跨库转换专项测试 | 35 |
 | 基准测试 | 7 |
-| **代码行数** | ~17,000 |
-| **功能模块** | 25+ |
+| **代码行数** | ~19,500 |
+| **功能模块** | 30+ |
 
-**全部 224 个测试用例均通过 ✅**
+**全部 256 个测试用例均通过 ✅**
 
 ---
 
@@ -724,4 +803,4 @@ cargo bench
 
 ## 许可证
 
-MIT License
+Apache-2.0 License
