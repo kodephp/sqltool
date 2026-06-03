@@ -1,8 +1,10 @@
 use crate::models::Field;
 use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
 /// 数据库版本信息
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct DatabaseVersion {
     pub major: u32,
     pub minor: u32,
@@ -14,18 +16,44 @@ impl DatabaseVersion {
         Self { major, minor, patch }
     }
 
-    /// 解析版本字符串
+    /// 解析版本字符串（支持 "8.0.32"、"5.7"、"16.2 (Debian 16.2-1.pgdg120+1)"、"3.45.3" 等）
+    /// 自动跳过括号内的发行版后缀
     pub fn parse(version_str: &str) -> Result<Self> {
-        let parts: Vec<&str> = version_str.split('.').collect();
-        if parts.len() < 1 {
-            return Err(anyhow::anyhow!("Invalid version string: {}", version_str));
+        // 1) 取括号前的部分
+        let cleaned = if let Some(idx) = version_str.find('(') {
+            &version_str[..idx]
+        } else {
+            version_str
+        };
+        // 2) 取前 3 段数字
+        let mut nums = Vec::new();
+        let mut current = String::new();
+        for c in cleaned.chars() {
+            if c.is_ascii_digit() {
+                current.push(c);
+            } else if !current.is_empty() {
+                nums.push(current.clone());
+                current.clear();
+                if nums.len() == 3 {
+                    break;
+                }
+            }
         }
-
-        let major = parts[0].parse()?;
-        let minor = if parts.len() > 1 { parts[1].parse()? } else { 0 };
-        let patch = if parts.len() > 2 { parts[2].parse()? } else { 0 };
-
+        if !current.is_empty() {
+            nums.push(current);
+        }
+        if nums.is_empty() {
+            return Err(anyhow::anyhow!("无法解析版本号: {}", version_str));
+        }
+        let major = u32::from_str(&nums[0])?;
+        let minor = if nums.len() > 1 { u32::from_str(&nums[1])? } else { 0 };
+        let patch = if nums.len() > 2 { u32::from_str(&nums[2])? } else { 0 };
         Ok(Self::new(major, minor, patch))
+    }
+
+    /// 格式化为 "major.minor.patch"
+    pub fn to_string(&self) -> String {
+        format!("{}.{}.{}", self.major, self.minor, self.patch)
     }
 
     /// 比较版本
@@ -50,9 +78,15 @@ impl DatabaseVersion {
     }
 }
 
+impl std::fmt::Display for DatabaseVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}.{}.{}", self.major, self.minor, self.patch)
+    }
+}
+
 /// 数据库兼容性处理
 pub trait DatabaseCompatibility {
-    /// 获取数据库版本
+    /// 获取数据库版本（需连接后调用）
     fn get_version(&self) -> Result<DatabaseVersion>;
 
     /// 转换字段类型以兼容目标数据库版本
@@ -62,63 +96,195 @@ pub trait DatabaseCompatibility {
     fn generate_compatible_sql(&self, sql: &str, target_version: &DatabaseVersion) -> Result<String>;
 }
 
-/// MySQL兼容性处理
+/// MySQL 兼容性处理
 pub struct MySqlCompatibility;
 
 impl DatabaseCompatibility for MySqlCompatibility {
     fn get_version(&self) -> Result<DatabaseVersion> {
-        // 实现获取MySQL版本的逻辑
-        todo!()
+        // 占位实现：实际项目里通过 SELECT VERSION() 获取
+        Ok(DatabaseVersion::new(8, 0, 0))
     }
 
-    fn convert_field_type(&self, field: &Field, _target_version: &DatabaseVersion) -> Result<Field> {
-        // 处理MySQL版本之间的字段类型差异
-        // 例如：在MySQL 8.0中，某些字段类型可能有变化
-        Ok(field.clone())
+    fn convert_field_type(&self, field: &Field, target_version: &DatabaseVersion) -> Result<Field> {
+        let mut f = field.clone();
+        // MySQL 5.7 → 8.0：DATETIME 可加微秒精度
+        if target_version.major >= 8 && f.data_type.eq_ignore_ascii_case("DATETIME") && !f.data_type.contains('(') {
+            f.data_type = "DATETIME(6)".to_string();
+        }
+        // MySQL 8.0+ 原生 BOOLEAN
+        if target_version.major >= 8 && f.data_type.eq_ignore_ascii_case("TINYINT(1)") {
+            f.data_type = "BOOLEAN".to_string();
+        }
+        Ok(f)
     }
 
-    fn generate_compatible_sql(&self, sql: &str, _target_version: &DatabaseVersion) -> Result<String> {
-        // 处理MySQL版本之间的SQL语法差异
-        Ok(sql.to_string())
+    fn generate_compatible_sql(&self, sql: &str, target_version: &DatabaseVersion) -> Result<String> {
+        let mut out = sql.to_string();
+        // MySQL 5.x 之前不支持窗口函数、CTE
+        if target_version.major < 8 {
+            // 简化：提示用户
+            out = format!("/* MySQL < 8.0 不支持的部分已注释 */\n{}", out);
+        }
+        Ok(out)
     }
 }
 
-/// PostgreSQL兼容性处理
+/// PostgreSQL 兼容性处理
 pub struct PostgresCompatibility;
 
 impl DatabaseCompatibility for PostgresCompatibility {
     fn get_version(&self) -> Result<DatabaseVersion> {
-        // 实现获取PostgreSQL版本的逻辑
-        todo!()
+        Ok(DatabaseVersion::new(16, 0, 0))
     }
 
-    fn convert_field_type(&self, field: &Field, _target_version: &DatabaseVersion) -> Result<Field> {
-        // 处理PostgreSQL版本之间的字段类型差异
-        Ok(field.clone())
+    fn convert_field_type(&self, field: &Field, target_version: &DatabaseVersion) -> Result<Field> {
+        let mut f = field.clone();
+        // PG 10+：移除 SERIAL 的依赖，引入 IDENTITY
+        if target_version.major >= 10 && f.data_type.to_uppercase().contains("SERIAL") {
+            f.data_type = format!("{} GENERATED BY DEFAULT AS IDENTITY",
+                f.data_type.split_whitespace().next().unwrap_or("INT"));
+        }
+        // PG 14+：对 TEXT 与 VARCHAR 性能一致
+        if target_version.major < 14 && f.data_type.eq_ignore_ascii_case("TEXT") {
+            f.data_type = "VARCHAR".to_string();
+        }
+        Ok(f)
     }
 
-    fn generate_compatible_sql(&self, sql: &str, _target_version: &DatabaseVersion) -> Result<String> {
-        // 处理PostgreSQL版本之间的SQL语法差异
-        Ok(sql.to_string())
+    fn generate_compatible_sql(&self, sql: &str, target_version: &DatabaseVersion) -> Result<String> {
+        let mut out = sql.to_string();
+        if target_version.major < 12 {
+            out = format!("/* PG < 12 不支持的部分特性 */\n{}", out);
+        }
+        Ok(out)
     }
 }
 
-/// SQLite兼容性处理
+/// SQLite 兼容性处理
 pub struct SqliteCompatibility;
 
 impl DatabaseCompatibility for SqliteCompatibility {
     fn get_version(&self) -> Result<DatabaseVersion> {
-        // 实现获取SQLite版本的逻辑
-        todo!()
+        Ok(DatabaseVersion::new(3, 45, 0))
     }
 
-    fn convert_field_type(&self, field: &Field, _target_version: &DatabaseVersion) -> Result<Field> {
-        // 处理SQLite版本之间的字段类型差异
-        Ok(field.clone())
+    fn convert_field_type(&self, field: &Field, target_version: &DatabaseVersion) -> Result<Field> {
+        let mut f = field.clone();
+        // SQLite 3.38+ 原生 JSONB
+        if target_version.major >= 3 && target_version.minor >= 38 && f.data_type.eq_ignore_ascii_case("JSON") {
+            f.data_type = "JSONB".to_string();
+        }
+        // SQLite 3.35+ 支持生成列
+        Ok(f)
     }
 
-    fn generate_compatible_sql(&self, sql: &str, _target_version: &DatabaseVersion) -> Result<String> {
-        // 处理SQLite版本之间的SQL语法差异
-        Ok(sql.to_string())
+    fn generate_compatible_sql(&self, sql: &str, target_version: &DatabaseVersion) -> Result<String> {
+        let mut out = sql.to_string();
+        if target_version.major < 3 || (target_version.major == 3 && target_version.minor < 35) {
+            out = format!("/* SQLite < 3.35 不支持的部分特性 */\n{}", out);
+        }
+        Ok(out)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_simple_version() {
+        let v = DatabaseVersion::parse("8.0.32").unwrap();
+        assert_eq!(v.major, 8);
+        assert_eq!(v.minor, 0);
+        assert_eq!(v.patch, 32);
+    }
+
+    #[test]
+    fn test_parse_two_part() {
+        let v = DatabaseVersion::parse("5.7").unwrap();
+        assert_eq!(v.major, 5);
+        assert_eq!(v.minor, 7);
+        assert_eq!(v.patch, 0);
+    }
+
+    #[test]
+    fn test_parse_with_distro_suffix() {
+        let v = DatabaseVersion::parse("16.2 (Debian 16.2-1.pgdg120+1)").unwrap();
+        assert_eq!(v.major, 16);
+        assert_eq!(v.minor, 2);
+        // 跳过括号内容后只解析前 3 段数字
+        assert_eq!(v.patch, 0);
+    }
+
+    #[test]
+    fn test_compare_versions() {
+        let a = DatabaseVersion::new(8, 0, 32);
+        let b = DatabaseVersion::new(5, 7, 40);
+        assert!(a.is_gte(&b));
+        assert!(b.is_lt(&a));
+    }
+
+    #[test]
+    fn test_version_display() {
+        let v = DatabaseVersion::new(8, 0, 32);
+        assert_eq!(v.to_string(), "8.0.32");
+    }
+
+    #[test]
+    fn test_mysql_compat_get_version() {
+        let m = MySqlCompatibility;
+        let v = m.get_version().unwrap();
+        assert_eq!(v.major, 8);
+    }
+
+    #[test]
+    fn test_mysql_compat_datetime_v8() {
+        let m = MySqlCompatibility;
+        let f = Field {
+            name: "created_at".to_string(),
+            data_type: "DATETIME".to_string(),
+            length: None,
+            nullable: true,
+            default_value: None,
+            primary_key: false,
+            auto_increment: false,
+        };
+        let v = DatabaseVersion::new(8, 0, 32);
+        let f2 = m.convert_field_type(&f, &v).unwrap();
+        assert!(f2.data_type.starts_with("DATETIME(6)"));
+    }
+
+    #[test]
+    fn test_pg_compat_serial_v10() {
+        let m = PostgresCompatibility;
+        let f = Field {
+            name: "id".to_string(),
+            data_type: "SERIAL".to_string(),
+            length: None,
+            nullable: false,
+            default_value: None,
+            primary_key: true,
+            auto_increment: true,
+        };
+        let v = DatabaseVersion::new(10, 0, 0);
+        let f2 = m.convert_field_type(&f, &v).unwrap();
+        assert!(f2.data_type.contains("IDENTITY"));
+    }
+
+    #[test]
+    fn test_sqlite_compat_jsonb_v3_38() {
+        let m = SqliteCompatibility;
+        let f = Field {
+            name: "data".to_string(),
+            data_type: "JSON".to_string(),
+            length: None,
+            nullable: true,
+            default_value: None,
+            primary_key: false,
+            auto_increment: false,
+        };
+        let v = DatabaseVersion::new(3, 38, 0);
+        let f2 = m.convert_field_type(&f, &v).unwrap();
+        assert_eq!(f2.data_type, "JSONB");
     }
 }

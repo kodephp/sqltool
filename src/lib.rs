@@ -53,7 +53,10 @@ pub use core::{Session, SessionManager, DatabaseSession, ViewManager, FunctionMa
 pub use core::{SlowQueryConfig, SlowQueryLog, QueryProfile, IndexUsageInfo, QueryOptimizationSuggestion, IssueType, Severity, SlowQueryDetector, QueryMetrics};
 pub use core::{NewSqlAnalyzer, NewSqlCapabilities, PerformanceMetrics, DistributionInfo, NodeHealth, NodeStatus, NodeRole, ShardAnalysis, ShardingType, DataSkewReport, ConflictAnalysis, HotRecord, NewSqlOptimizationResult, QueryRouter, RoutingRule as SqlRoutingRule, ConsistencyCheck, ConsistencyStatus, RepairReport, NewSqlShardInfo, SplitPoint, NewSqlAnalyzerBuilder};
 pub use core::{TableConfig, ShardStrategy, ShardInfo as AutoShardInfo, SpanningQueryResult, CompressionConfig, AutoShardingManager, StorageBackend, CompressionHandler, SmartAutoOptimizer, OptimizationRule, OptimizationReport, ShardSummary};
-pub use core::{LogTableConfig, PartitionType, LogPartition, LogQuery, LogQueryResult, LogStats, LogTableManager, LogAggregator, TimeWindowAggregation};
+pub use core::{LogTableConfig, PartitionType, LogPartition, LogQuery, LogQueryResult, LogStats, LogTableManager, LogAggregator, TimeWindowAggregation, LogEntry, LogAggregationResult, ErrorSpike};
+pub use core::{CrossDbConverter, TypeMappingTable, TypeMappingRule, FieldLinker, FieldLink, LinkKind, DdlGenerator, ValueTransformer, ValueConversion, ConversionReport, TargetDbKind, version_adjusted_type};
+pub use core::{DataMigrator, MigrationConfig, MigrationDirection, TableMigrationResult, FieldMigration};
+pub use core::{ShardTopology, ShardNode, ShardStrategyKind, QueryCoordinator, WriteCoordinator, SpanningQuery, ShardResult, MergeStrategy, AggregateKind, RebalancePlan, ShardMove, ShardWriteOp, ShardWriteResult, ShardWriteReport};
 pub use databases::{DatabaseConnection, DatabaseType, create_connection, DatabaseVersion, DatabaseCompatibility, MySqlCompatibility, PostgresCompatibility, SqliteCompatibility};
 pub use databases::connection::{ConnectionConfig, MySqlConfig, PostgresConfig, SqliteConfig, RedisConfig, SslMode, JournalMode};
 pub use models::{TableSchema, Field, FieldMapping, TableMapping};

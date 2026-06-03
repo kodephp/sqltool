@@ -21,6 +21,9 @@ mod slow_query;
 mod newsql;
 mod auto_sharding;
 mod log_table;
+mod cross_db_conversion;
+mod data_migration;
+mod smart_sharding;
 
 pub use transfer::{DataTransfer, StructureMigration};
 pub use compare::{SchemaComparator, FieldMapper, SchemaComparison};
@@ -45,3 +48,6 @@ pub use slow_query::{SlowQueryConfig, SlowQueryLog, QueryProfile, IndexUsageInfo
 pub use newsql::{NewSqlAnalyzer, NewSqlCapabilities, PerformanceMetrics, DistributionInfo, NodeHealth, NodeStatus, NodeRole, ShardAnalysis, ShardingType, DataSkewReport, ConflictAnalysis, HotRecord, NewSqlOptimizationResult, QueryRouter, RoutingRule as SqlRoutingRule, ConsistencyCheck, ConsistencyStatus, RepairReport, NewSqlShardInfo, SplitPoint, NewSqlAnalyzerBuilder};
 pub use auto_sharding::{TableConfig, ShardStrategy, ShardInfo as AutoShardInfo, SpanningQueryResult, CompressionConfig, AutoShardingManager, StorageBackend, CompressionHandler, SmartAutoOptimizer, OptimizationRule, OptimizationReport, ShardSummary, TableHealthReport, HealthSeverity, UnifiedQuery, CrudOperation, UnifiedCrudExecutor, ShardMigrationPlanner, MigrationStep, ShardRebalancer};
 pub use log_table::{LogTableConfig, PartitionType, LogPartition, LogQuery, LogQueryResult, LogStats, LogTableManager, LogAggregator, TimeWindowAggregation, LogEntry, LogAggregationResult, ErrorSpike};
+pub use cross_db_conversion::{CrossDbConverter, TypeMappingTable, TypeMappingRule, FieldLinker, FieldLink, LinkKind, DdlGenerator, ValueTransformer, ValueConversion, ConversionReport, TargetDbKind, version_adjusted_type};
+pub use data_migration::{DataMigrator, MigrationConfig, MigrationDirection, TableMigrationResult, FieldMigration};
+pub use smart_sharding::{SmartShardTopology as ShardTopology, SmartShardNode as ShardNode, ShardStrategyKind, QueryCoordinator, WriteCoordinator, SmartSpanningQuery as SpanningQuery, ShardResult, MergeStrategy, AggregateKind, RebalancePlan, ShardMove, WriteOp as ShardWriteOp, WriteResult as ShardWriteResult, WriteReport as ShardWriteReport};

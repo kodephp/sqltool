@@ -13,7 +13,7 @@ pub struct Field {
 }
 
 /// 表结构
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TableSchema {
     pub name: String,
     pub fields: Vec<Field>,
@@ -22,7 +22,7 @@ pub struct TableSchema {
 }
 
 /// 索引结构
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Index {
     pub name: String,
     pub fields: Vec<String>,
@@ -30,7 +30,7 @@ pub struct Index {
 }
 
 /// 外键结构
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ForeignKey {
     pub name: String,
     pub fields: Vec<String>,

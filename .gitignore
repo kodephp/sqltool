@@ -38,3 +38,10 @@ logs/
 # 数据库文件
 *.db
 *.sqlite
+
+# SDK 编译产物
+sdks/go/demo/go.sum
+sdks/csharp/bin/
+sdks/csharp/obj/
+sdks/java/*.class
+examples/rust/target/

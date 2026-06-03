@@ -9,19 +9,19 @@
 # 包名称 - 用于发布到 crates.io
 name = "sqltool"
 # 版本号 - 遵循语义化版本 (Semantic Versioning)
-version = "0.4.1"
+version = "0.6.0"
 # Rust edition 版本
 edition = "2021"
 # 作者列表
 authors = ["SQLTool Team <sqltool@example.com>"]
-# 许可证 - MIT 开源许可证
-license = "MIT"
+# 双协议：MIT OR Apache-2.0（用户可任选其一）
+license = "MIT OR Apache-2.0"
 # 包描述 - 简洁描述包的功能
-description = "功能强大的数据库迁移、同步、运维工具，支持自动分库分表、慢查询检测、数据对比、备份恢复，提供多语言SDK"
+description = "功能强大的数据库迁移、同步、运维工具，支持异构数据库自动转换、自动分库分表、慢查询检测、数据对比、备份恢复，提供多语言SDK"
 # 项目主页
-homepage = "https://github.com/yourusername/sqltool"
+homepage = "https://github.com/kodephp/sqltool"
 # 代码仓库
-repository = "https://github.com/yourusername/sqltool"
+repository = "https://github.com/kodephp/sqltool"
 # 文档地址
 documentation = "https://docs.rs/sqltool"
 # README 文件
@@ -31,7 +31,7 @@ keywords = ["database", "migration", "sql", "sharding", "backup"]
 # 分类 - 用于 crates.io 分类
 categories = ["database", "development-tools"]
 # 最低 Rust 版本要求
-rust-version = "1.94"
+rust-version = "1.96"
 exclude = [".trae/"]
 
 # 库配置
